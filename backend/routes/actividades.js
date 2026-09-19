@@ -1,0 +1,67 @@
+import { Router } from 'express'
+import { Op } from 'sequelize'
+import Actividad from '../models/Actividad.js'
+import Sede from '../models/Sede.js'
+import Profesora from '../models/Profesora.js'
+import { requireAuth } from '../middleware/auth.js'
+
+const router = Router()
+
+router.get('/', requireAuth, async (req, res) => {
+  const { sede_id } = req.query
+  const where = { activo: true }
+  if (sede_id) where.sede_id = sede_id
+  // Profesora ve sus grupos + siempre Danza Fusión (para poder registrar ese pago)
+  if (req.user.rol === 'profesora') {
+    if (!req.user.profesora_id) return res.json([])
+    const pid = req.user.profesora_id
+    where[Op.or] = [
+      { profesora_id: pid },
+      { profesora_id_2: pid },
+      { nombre: { [Op.like]: '%Danza Fusi%' } },
+    ]
+  }
+  const list = await Actividad.findAll({
+    where,
+    include: [
+      { model: Sede,     as: 'sede',     attributes: ['id','nombre'] },
+      { model: Profesora,as: 'profesora',attributes: ['id','nombre','apellido','abreviatura'] },
+    ],
+    order: [['nombre', 'ASC']],
+  })
+  res.json(list)
+})
+
+// "Danza Fusión" es una clase propia de la escuela de rítmica de la que sale este
+// sistema. En Patín F.A. no existe: antes esta ruta la creaba sola si faltaba, y
+// aparecía en la base de Florencia una actividad que no es suya. Ahora solo la
+// devuelve si alguien la cargó a mano; si no, responde 404 y las pantallas siguen.
+router.get('/danza-fusion', requireAuth, async (req, res) => {
+  try {
+    const act = await Actividad.findOne({ where: { nombre: { [Op.like]: '%Danza Fusi%' } } })
+    if (!act) return res.status(404).json({ error: 'No existe la actividad Danza Fusión' })
+    res.json(act)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+router.post('/', requireAuth, async (req, res) => {
+  try {
+    const a = await Actividad.create(req.body)
+    res.json(a)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+})
+
+router.put('/:id', requireAuth, async (req, res) => {
+  try {
+    await Actividad.update(req.body, { where: { id: req.params.id } })
+    res.json({ ok: true })
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+})
+
+export default router

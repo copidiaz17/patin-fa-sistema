@@ -1,0 +1,17 @@
+node_modules/
+frontend/dist/
+.env
+*.env
+backend/aiven.txt
+backend/*.sql
+backend/datos/
+backend/probar*.mjs
+backend/subir-aiven.mjs
+backend/public/fotos/*
+backend/public/comprobantes/*
+!backend/public/fotos/.gitkeep
+!backend/public/comprobantes/.gitkeep
+capturas/
+videos-candidatos/
+sitio/index.antes-videos.html
+sitio/videos/patin-giro.*

@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: patin-fa
+    runtime: node
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        value: ritmica-falube-stock.g.aivencloud.com
+      - key: DB_PORT
+        value: 23807
+      # Base propia de Patín en el servidor de Rítmica. NUNCA defaultdb (es la de Rítmica).
+      - key: DB_NAME
+        value: patin_fa
+      - key: DB_USER
+        value: avnadmin
+      - key: DB_SSL
+        value: true
+      - key: DB_PASS
+        sync: false
+      - key: JWT_SECRET
+        sync: false
